@@ -32,7 +32,7 @@ class GenericSandbox(object):
                                         tag=self.image_tag,
                                         )
         for row in buildresult:
-            #print(row.strip())
+            print(row.strip())
             row = json.loads(row)
             if row.get('error'):
                 raise Exception('Image building error', row)
@@ -71,7 +71,8 @@ class GenericSandbox(object):
                                                  mem_limit="100m",)
         cid = container['Id']
         self.client.start(container=cid)
-        self.client.wait(container=cid)
+        exitcode = self.client.wait(container=cid)
+        print("Exit code: %s" % exitcode)
         logs = self.client.logs(container=cid)
         self.client.remove_container(container=cid)
         return logs
