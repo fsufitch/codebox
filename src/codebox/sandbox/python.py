@@ -1,30 +1,41 @@
 import os, shutil
 from codebox.sandbox.sandbox import GenericSandbox
 
-DOCKERFILE_EXTRA = '''
-RUN apt-get install -y python
-RUN mkdir /sandbox
-WORKDIR /sandbox
-'''
-
 class PythonSandbox(GenericSandbox):
-    def __init__(self, codepath):
+    def __init__(self, srcname, codepath=None, codesource=None):
+        if not (codepath or codesource):
+            raise ValueError("Must specify code path or code source")
         super(PythonSandbox, self).__init__()
+        self.dockerfile.append("RUN apt-get install -y python3")
 
-        self.codepath = os.path.realpath(codepath)
-        self.srcname = os.path.split(codepath)[1]
-        self.sympath = os.path.join(self.dockerdir, self.srcname)
+        self.srcname = srcname
+        self.include_file(self.srcname, 
+                          source_fname=codepath,
+                          source_contents=codesource,
+                          )
 
-        os.chdir(self.dockerdir)
-        #os.symlink(self.codepath, self.sympath)
-        shutil.copyfile(self.codepath, self.sympath)
-        print(os.getcwd())
-
-        self.image_tag = 'codebox/python'
-        
-        self.dockerfile += DOCKERFILE_EXTRA
-        self.dockerfile += "ADD %s /sandbox/%s" % (self.srcname, self.srcname)
+        self.image_tag = 'codebox/python3'
 
     def run(self):
-        command = ['python', self.srcname]
+        command = ['python3', self.srcname]
         return self.run_cmd(command)
+
+class LegacyPythonSandbox(GenericSandbox):
+    def __init__(self, srcname, codepath=None, codesource=None):
+        if not (codepath or codesource):
+            raise ValueError("Must specify code path or code source")
+        super(LegacyPythonSandbox, self).__init__()
+        self.dockerfile.append("RUN apt-get install -y python2.7")
+
+        self.srcname = srcname
+        self.include_file(self.srcname, 
+                          source_fname=codepath,
+                          source_contents=codesource,
+                          )
+
+        self.image_tag = 'codebox/python2_7'
+
+    def run(self):
+        command = ['python2.7', self.srcname]
+        return self.run_cmd(command)
+    
