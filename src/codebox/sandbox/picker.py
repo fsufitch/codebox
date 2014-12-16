@@ -1,12 +1,13 @@
 import mimetypes
-from codebox.sandbox.python import PythonSandbox, LegacyPythonSandbox
 from codebox.sandbox.c import CSandbox
-
+from codebox.sandbox.java import Java8Sandbox
+from codebox.sandbox.python import PythonSandbox, LegacyPythonSandbox
 
 SANDBOXES = {
     'python': PythonSandbox,
     'legacypython': LegacyPythonSandbox,
     'c': CSandbox,
+    'java8': Java8Sandbox,
     }
 
 def pick_sandbox(sbtype):
@@ -20,4 +21,6 @@ def guess_sandbox(fname):
         return 'python'
     if 'x-csrc' in mime[0]:
         return 'c'
+    if 'x-java' in mime[0]:
+        return 'java8'
     raise ValueError('Cannot guess sandbox type from filename only: %s' % fname)

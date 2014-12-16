@@ -26,13 +26,13 @@ class GenericSandbox(object):
         dockerpath = os.path.join(self.dockerdir, 'Dockerfile')
         dockercontents = '\n'.join(self.dockerfile)
         with open(dockerpath, 'w') as f:
-            print(dockercontents)
+            #print(dockercontents)
             f.write(dockercontents)
         buildresult = self.client.build(path=self.dockerdir,
                                         tag=self.image_tag,
                                         )
         for row in buildresult:
-            print(row.strip())
+            #print(row.strip())
             row = json.loads(row)
             if row.get('error'):
                 raise Exception('Image building error', row)

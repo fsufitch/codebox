@@ -22,4 +22,7 @@ def main():
     result = sandbox.run()
     sandbox.destroy()
 
-    print(result)
+    print("Your code:")
+    print(open(srcfile).read())
+    print("Result:")
+    print(result.decode())

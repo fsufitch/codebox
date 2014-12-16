@@ -1,17 +1,19 @@
 from codebox.sandbox.sandbox import GenericSandbox
 
 RUNSCRIPT = """
-gcc {src} -o runme;
-./runme;
+javac {src};
+java {compiled};
 """
 
-class CSandbox(GenericSandbox):
+class Java8Sandbox(GenericSandbox):
     def __init__(self, srcname, codepath=None, codesource=None):
         if not (codepath or codesource):
             raise ValueError("Must specify code path or code source")
-        super(CSandbox, self).__init__()
-        self.dockerfile[0] = 'FROM gcc' # Wow.
-        #self.dockerfile.append("RUN apt-get install -y gcc libc6")
+        if not srcname.endswith('.java'):
+            raise ValueError("Source name must end in .java: %s" % srcname)
+
+        super(Java8Sandbox, self).__init__()
+        self.dockerfile[0] = 'FROM dockerfile/java:oracle-java8'
 
         self.srcname = srcname
         self.include_file(self.srcname, 
@@ -19,10 +21,11 @@ class CSandbox(GenericSandbox):
                           source_contents=codesource,
                           )
 
-        runscript_contents = RUNSCRIPT.format(src=srcname)
+        runscript_contents = RUNSCRIPT.format(src=srcname,
+                                              compiled=srcname[:-5])
         self.include_file("runscript.sh", source_contents=runscript_contents)
 
-        self.image_tag = 'codebox/c'
+        self.image_tag = 'codebox/java8'
 
     def run(self):
         command = ['sh', 'runscript.sh']
