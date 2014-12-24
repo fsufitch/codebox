@@ -2,12 +2,6 @@ import json, os, shutil, tempfile
 from io import BytesIO
 from docker import Client
 
-BASE_DOCKERFILE = [
-    'FROM ubuntu',
-    'RUN mkdir /sandbox',
-    'WORKDIR /sandbox',
-    ]
-
 class GenericSandbox(object):
     def __init__(self, sandbox_dir='/sandbox'):
         self.client = Client()
@@ -18,6 +12,7 @@ class GenericSandbox(object):
 
         self.dockerfile = [
             'FROM ubuntu',
+            'RUN apt-get install unzip',
             'RUN mkdir %s' % sandbox_dir,
             'WORKDIR %s' % sandbox_dir,
             ]
@@ -32,6 +27,10 @@ class GenericSandbox(object):
                                         tag=self.image_tag,
                                         )
         for row in buildresult:
+            if type(row) == bytes:
+                row = str(row, 'utf-8')
+            if type(row) != str:
+                raise TypeError("Non-string result row!", row)
             print(row.strip())
             row = json.loads(row)
             if row.get('error'):
@@ -63,6 +62,18 @@ class GenericSandbox(object):
             command = "ADD {source} {dest}".format(source=fname,
                                                    dest=destination_path)
             self.dockerfile.append(command)
+
+    def include_zip(self, source_fname=None, source_contents=None):
+        if not (source_fname or source_contents):
+                raise ValueError("No source specified!")
+        ZIPNAME = "__codebox_zip_upload.zip"
+        self.include_file(ZIPNAME, source_fname, source_contents)
+
+        command = "RUN unzip {name}".format(name=ZIPNAME)
+        self.dockerfile.append(command)
+
+        command = "RUN rm {name}".format(name=ZIPNAME)
+        self.dockerfile.append(command)
 
     def run_cmd(self, command):
         assert self.built

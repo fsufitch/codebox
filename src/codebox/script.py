@@ -6,10 +6,12 @@ DESCRIPTION = 'Run code in a docker.io sandboxed environment'
 def main():
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('-s', '--sandbox', metavar="SANDBOX", dest='sandbox', default=None, type=str, help="identifier for type of sandbox to use")
+    parser.add_argument('-z', '--zipfile', metavar="ZIP", dest='zip', default=None, type=str, help="zipfile to source files from")
     parser.add_argument('source_file', metavar="SOURCEFILE", help="source file to run")
     args = parser.parse_args()
 
     srcfile = args.source_file
+    zipfile = args.zip
     sbtype = args.sandbox
     if not sbtype:
         sbtype = guess_sandbox(srcfile)
@@ -18,6 +20,8 @@ def main():
 
     sb_cls = pick_sandbox(sbtype)
     sandbox = sb_cls(fname, codepath=srcfile)
+    if zipfile:
+        sandbox.include_zip(source_fname=zipfile)
     sandbox.build()
     result = sandbox.run()
     sandbox.destroy()
