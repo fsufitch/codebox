@@ -16,9 +16,9 @@ class PythonSandbox(GenericSandbox):
 
         self.image_tag = 'codebox/python3'
 
-    def run(self):
+    def run(self, *args, **kwargs):
         command = ['python3', self.srcname]
-        return self.run_cmd(command)
+        return self.run_cmd(command, *args, **kwargs)
 
 class LegacyPythonSandbox(GenericSandbox):
     def __init__(self, srcname, codepath=None, codesource=None):
@@ -35,7 +35,7 @@ class LegacyPythonSandbox(GenericSandbox):
 
         self.image_tag = 'codebox/python2_7'
 
-    def run(self):
+    def run(self, *args, **kwargs):
         command = ['python2.7', self.srcname]
-        return self.run_cmd(command)
+        return self.run_cmd(command, *args, **kwargs)
     

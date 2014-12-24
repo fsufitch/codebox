@@ -23,10 +23,15 @@ def main():
     if zipfile:
         sandbox.include_zip(source_fname=zipfile)
     sandbox.build()
-    result = sandbox.run()
-    sandbox.destroy()
+    result = sandbox.run(cleanup=False)
 
     print("Your code:")
     print(open(srcfile).read())
     print("Result:")
-    print(result.decode())
+    print(result['logs'].decode())
+
+    print("Contents of foo.out:")
+    data = sandbox.get_file(result['container_id'], 'foo.out')
+    print(data)
+
+    sandbox.destroy()

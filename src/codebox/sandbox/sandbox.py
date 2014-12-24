@@ -9,6 +9,7 @@ class GenericSandbox(object):
         self.sandbox_dir = sandbox_dir
         self.image_tag = 'codebox/generic'
         self.built = False
+        self.containers = []
 
         self.dockerfile = [
             'FROM ubuntu',
@@ -75,7 +76,7 @@ class GenericSandbox(object):
         command = "RUN rm {name}".format(name=ZIPNAME)
         self.dockerfile.append(command)
 
-    def run_cmd(self, command):
+    def run_cmd(self, command, cleanup=True):
         assert self.built
         container = self.client.create_container(image=self.image_tag,
                                                  command=command,
@@ -85,8 +86,27 @@ class GenericSandbox(object):
         exitcode = self.client.wait(container=cid)
         print("Exit code: %s" % exitcode)
         logs = self.client.logs(container=cid)
-        self.client.remove_container(container=cid)
-        return logs
+        self.containers.append(cid)
+        if cleanup:
+            self.cleanup_container(cid)
+        return {'logs': logs,
+                'container_id': cid,
+                }
+
+    def cleanup_container(self, container_id):
+        self.containers.remove(container_id)
+        self.client.remove_container(container=container_id)
+
+    def get_file(self, container_id, fname):
+        fpath = os.path.join('/sandbox', fname)
+        data = self.client.copy(container=container_id, 
+                                resource=fpath).read()
+        data = data[512:]           # XXX: WTF, Docker?
+        data = data.rstrip(b'\x00') # XXX: WTF, Docker?
+        return data
+
 
     def destroy(self):
+        for container in self.containers:
+            self.cleanup_container(container)
         shutil.rmtree(self.dockerdir)

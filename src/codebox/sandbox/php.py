@@ -17,6 +17,6 @@ class PHP5Sandbox(GenericSandbox):
 
         self.image_tag = 'codebox/php5'
 
-    def run(self):
+    def run(self, *args, **kwargs):
         command = ['php5', self.srcname]
-        return self.run_cmd(command)
+        return self.run_cmd(command, *args, **kwargs)
