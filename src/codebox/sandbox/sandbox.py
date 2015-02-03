@@ -13,7 +13,8 @@ class GenericSandbox(object):
 
         self.dockerfile = [
             'FROM ubuntu',
-            'RUN apt-get install unzip',
+            'RUN apt-get update -y',
+            'RUN apt-get install -y unzip',
             'RUN mkdir %s' % sandbox_dir,
             'WORKDIR %s' % sandbox_dir,
             ]
@@ -27,15 +28,17 @@ class GenericSandbox(object):
         buildresult = self.client.build(path=self.dockerdir,
                                         tag=self.image_tag,
                                         )
+        rowbuf = ""
         for row in buildresult:
             if type(row) == bytes:
                 row = str(row, 'utf-8')
             if type(row) != str:
                 raise TypeError("Non-string result row!", row)
-            #print(row.strip())
+            print(row.strip())
+            rowbuf += row.strip() + "\n"
             row = json.loads(row)
             if row.get('error'):
-                raise Exception('Image building error', row)
+                raise Exception('Image building error %s \n\n %s' % (row, rowbuf))
         self.built = True
 
     def include_file(self, fname, source_fname=None, source_contents=None):

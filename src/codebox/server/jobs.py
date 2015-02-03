@@ -81,8 +81,8 @@ class GetJobHandler(RequestHandler):
             result['run_exception'] = job['run_future'].exception()
             if not result['run_exception']:
                 result['run_result'] = job['run_future'].result()
-                if type(result['run_result'])==bytes:
-                    result['run_result'] = result['run_result'].decode()
+                if type(result['run_result']['logs'])==bytes:
+                    result['run_result']['logs'] = result['run_result']['logs'].decode()
             else:
                 result['run_exception'] = str(result['run_exception'])
 
