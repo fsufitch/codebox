@@ -32,7 +32,7 @@ class GenericSandbox(object):
                                         tag=self.image_tag,
                                         )
         for row in buildresult:
-            print(row.strip())
+            #print(row.strip())
             row = json.loads(row)
             if row.get('error'):
                 raise Exception('Image building error', row)
