@@ -27,6 +27,6 @@ class Java8Sandbox(GenericSandbox):
 
         self.image_tag = 'codebox/java8'
 
-    def run(self):
+    def run(self, *args, **kwargs):
         command = ['sh', 'runscript.sh']
-        return self.run_cmd(command)
+        return self.run_cmd(command, *args, **kwargs)

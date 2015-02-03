@@ -2,12 +2,6 @@ import json, os, shutil, tempfile
 from io import BytesIO
 from docker import Client
 
-BASE_DOCKERFILE = [
-    'FROM ubuntu',
-    'RUN mkdir /sandbox',
-    'WORKDIR /sandbox',
-    ]
-
 class GenericSandbox(object):
     def __init__(self, sandbox_dir='/sandbox'):
         self.client = Client()
@@ -15,9 +9,11 @@ class GenericSandbox(object):
         self.sandbox_dir = sandbox_dir
         self.image_tag = 'codebox/generic'
         self.built = False
+        self.containers = []
 
         self.dockerfile = [
             'FROM ubuntu',
+            'RUN apt-get install unzip',
             'RUN mkdir %s' % sandbox_dir,
             'WORKDIR %s' % sandbox_dir,
             ]
@@ -32,6 +28,10 @@ class GenericSandbox(object):
                                         tag=self.image_tag,
                                         )
         for row in buildresult:
+            if type(row) == bytes:
+                row = str(row, 'utf-8')
+            if type(row) != str:
+                raise TypeError("Non-string result row!", row)
             #print(row.strip())
             row = json.loads(row)
             if row.get('error'):
@@ -64,7 +64,19 @@ class GenericSandbox(object):
                                                    dest=destination_path)
             self.dockerfile.append(command)
 
-    def run_cmd(self, command):
+    def include_zip(self, source_fname=None, source_contents=None):
+        if not (source_fname or source_contents):
+                raise ValueError("No source specified!")
+        ZIPNAME = "__codebox_zip_upload.zip"
+        self.include_file(ZIPNAME, source_fname, source_contents)
+
+        command = "RUN unzip {name}".format(name=ZIPNAME)
+        self.dockerfile.append(command)
+
+        command = "RUN rm {name}".format(name=ZIPNAME)
+        self.dockerfile.append(command)
+
+    def run_cmd(self, command, cleanup=True):
         assert self.built
         container = self.client.create_container(image=self.image_tag,
                                                  command=command,
@@ -74,8 +86,27 @@ class GenericSandbox(object):
         exitcode = self.client.wait(container=cid)
         print("Exit code: %s" % exitcode)
         logs = self.client.logs(container=cid)
-        self.client.remove_container(container=cid)
-        return logs
+        self.containers.append(cid)
+        if cleanup:
+            self.cleanup_container(cid)
+        return {'logs': logs,
+                'container_id': cid,
+                }
+
+    def cleanup_container(self, container_id):
+        self.containers.remove(container_id)
+        self.client.remove_container(container=container_id)
+
+    def get_file(self, container_id, fname):
+        fpath = os.path.join('/sandbox', fname)
+        data = self.client.copy(container=container_id, 
+                                resource=fpath).read()
+        data = data[512:]           # XXX: WTF, Docker?
+        data = data.rstrip(b'\x00') # XXX: WTF, Docker?
+        return data
+
 
     def destroy(self):
+        for container in self.containers:
+            self.cleanup_container(container)
         shutil.rmtree(self.dockerdir)
