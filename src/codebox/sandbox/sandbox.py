@@ -83,7 +83,8 @@ class GenericSandbox(object):
         assert self.built
         container = self.client.create_container(image=self.image_tag,
                                                  command=command,
-                                                 mem_limit="100m",)
+                                                 mem_limit="100m",
+                                                 network_disabled=True)
         cid = container['Id']
         self.client.start(container=cid)
         exitcode = self.client.wait(container=cid)
