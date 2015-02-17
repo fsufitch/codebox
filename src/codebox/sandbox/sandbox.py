@@ -3,10 +3,11 @@ from io import BytesIO
 from docker import Client
 
 class GenericSandbox(object):
-    def __init__(self, sandbox_dir='/sandbox', client_args={}):
+    def __init__(self, sandbox_dir='/sandbox', sandbox_user="sandbox_user", client_args={}):
         self.client = Client(**client_args)
         self.dockerdir = tempfile.mkdtemp('codebox_docker')
         self.sandbox_dir = sandbox_dir
+        self.sandbox_user = sandbox_user
         self.image_tag = 'codebox/generic'
         self.built = False
         self.containers = []
@@ -16,12 +17,18 @@ class GenericSandbox(object):
             'RUN apt-get update -y',
             'RUN apt-get install -y unzip',
             'RUN mkdir %s' % sandbox_dir,
+            'RUN useradd %s' % sandbox_user,
+            'RUN chown %s %s' % (sandbox_user, sandbox_dir),
             'WORKDIR %s' % sandbox_dir,
             ]
 
+        self.dockerfile_finalize = [
+            'USER %s' % sandbox_user,
+            ] # Instructions to run after whatever the baseclass does
+
     def build(self):
         dockerpath = os.path.join(self.dockerdir, 'Dockerfile')
-        dockercontents = '\n'.join(self.dockerfile)
+        dockercontents = '\n'.join(self.dockerfile + self.dockerfile_finalize)
         with open(dockerpath, 'w') as f:
             #print(dockercontents)
             f.write(dockercontents)
@@ -83,7 +90,10 @@ class GenericSandbox(object):
         assert self.built
         container = self.client.create_container(image=self.image_tag,
                                                  command=command,
+                                                 hostname="codebox",
                                                  mem_limit="100m",
+                                                 #memswap_limit=1,
+                                                 working_dir=self.sandbox_dir,
                                                  network_disabled=True)
         cid = container['Id']
         self.client.start(container=cid)

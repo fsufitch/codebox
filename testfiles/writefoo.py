@@ -12,3 +12,13 @@ import os
 
 print("Stuff in this dir:")
 print(os.listdir("."))
+
+import subprocess
+def runcmd(cmd):
+    print("RUNNING COMMAND: %s" % cmd)
+    print(subprocess.check_output(cmd, shell=True))
+
+runcmd('whoami')
+runcmd('hostname')
+runcmd('ls /')
+runcmd('touch /etc/foo')
