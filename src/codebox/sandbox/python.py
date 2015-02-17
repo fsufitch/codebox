@@ -2,10 +2,10 @@ import os, shutil
 from codebox.sandbox.sandbox import GenericSandbox
 
 class PythonSandbox(GenericSandbox):
-    def __init__(self, srcname, codepath=None, codesource=None):
+    def __init__(self, srcname, codepath=None, codesource=None, client_args={}):
         if not (codepath or codesource):
             raise ValueError("Must specify code path or code source")
-        super(PythonSandbox, self).__init__()
+        super(PythonSandbox, self).__init__(client_args=client_args)
         self.dockerfile.append("RUN apt-get install -y python3")
 
         self.srcname = srcname
@@ -21,10 +21,10 @@ class PythonSandbox(GenericSandbox):
         return self.run_cmd(command, *args, **kwargs)
 
 class LegacyPythonSandbox(GenericSandbox):
-    def __init__(self, srcname, codepath=None, codesource=None):
+    def __init__(self, srcname, codepath=None, codesource=None, client_args={}):
         if not (codepath or codesource):
             raise ValueError("Must specify code path or code source")
-        super(LegacyPythonSandbox, self).__init__()
+        super(LegacyPythonSandbox, self).__init__(client_args=client_args)
         self.dockerfile.append("RUN apt-get install -y python2.7")
 
         self.srcname = srcname

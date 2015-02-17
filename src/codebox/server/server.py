@@ -5,6 +5,8 @@ from yaul.daemon import Daemon, run_as_service
 
 from codebox.server.jobs import NewJobHandler, GetJobHandler
 
+DEFAULT_CONF = "/etc/codebox.json"
+
 PATHS = [
          (r'/job/new', NewJobHandler),
          (r'/job/get/(.*)', GetJobHandler),

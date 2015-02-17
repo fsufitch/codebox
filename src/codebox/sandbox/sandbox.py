@@ -3,8 +3,8 @@ from io import BytesIO
 from docker import Client
 
 class GenericSandbox(object):
-    def __init__(self, sandbox_dir='/sandbox'):
-        self.client = Client()
+    def __init__(self, sandbox_dir='/sandbox', client_args={}):
+        self.client = Client(**client_args)
         self.dockerdir = tempfile.mkdtemp('codebox_docker')
         self.sandbox_dir = sandbox_dir
         self.image_tag = 'codebox/generic'

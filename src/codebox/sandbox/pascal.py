@@ -6,12 +6,12 @@ fpc {src} > /dev/null;
 """
 
 class PascalSandbox(GenericSandbox):
-    def __init__(self, srcname, codepath=None, codesource=None):
+    def __init__(self, srcname, codepath=None, codesource=None, client_args={}):
         if not (codepath or codesource):
             raise ValueError("Must specify code path or code source")
         if not srcname.endswith('.pas'):
             raise ValueError("Source name must end in .pas: %s" % srcname)
-        super(PascalSandbox, self).__init__()
+        super(PascalSandbox, self).__init__(client_args=client_args)
         #self.dockerfile[0] = 'FROM gcc' # Wow.
         self.dockerfile.append("RUN apt-get update")
         self.dockerfile.append("RUN apt-get install -y fp-compiler")

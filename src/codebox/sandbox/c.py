@@ -6,10 +6,10 @@ gcc {src} -o runme;
 """
 
 class CSandbox(GenericSandbox):
-    def __init__(self, srcname, codepath=None, codesource=None):
+    def __init__(self, srcname, codepath=None, codesource=None, client_args={}):
         if not (codepath or codesource):
             raise ValueError("Must specify code path or code source")
-        super(CSandbox, self).__init__()
+        super(CSandbox, self).__init__(client_args=client_args)
         self.dockerfile[0] = 'FROM gcc' # Wow.
         #self.dockerfile.append("RUN apt-get install -y gcc libc6")
 

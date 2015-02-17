@@ -2,10 +2,10 @@ import os, shutil
 from codebox.sandbox.sandbox import GenericSandbox
 
 class PHP5Sandbox(GenericSandbox):
-    def __init__(self, srcname, codepath=None, codesource=None):
+    def __init__(self, srcname, codepath=None, codesource=None, client_args={}):
         if not (codepath or codesource):
             raise ValueError("Must specify code path or code source")
-        super(PHP5Sandbox, self).__init__()
+        super(PHP5Sandbox, self).__init__(client_args=client_args)
         self.dockerfile.append("RUN apt-get update")
         self.dockerfile.append("RUN apt-get install -y php5")
 
